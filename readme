@@ -45,3 +45,9 @@ This project aims to solve the problem of being unable to execute installation s
 - **Shadowsocks Configuration:** Using `Shadowsocks` alongside `gost` provides stronger encryption and firewall penetration capabilities.
 
 This combined approach effectively bypasses installation failures caused by network issues, ensuring the smooth execution of the project.
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+如果你使用的是Linux系统，且确保本地端口7680与8080尚未使用，可以执行项目中的.sh自动完成配置
+
