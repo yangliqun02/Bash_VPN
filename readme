@@ -1,0 +1,47 @@
+本项目可以解决因网络原因无法正常执行安装脚本配置项目的问题（例如setup.py）
+解决方案概述：
+1. **问题背景：**
+   - 在一些受网络限制的地区，常常无法通过 `setup.py` 等安装工具成功安装项目，因为其中的依赖需要从网络下载，而网络连接往往会受到限制。
+   - 执行 `python` 安装脚本时，生成的 shell 指令如果因为网络原因失败，会导致整个安装过程中断。
+   
+2. **无感知的 Shell VPN 配置：**
+   - 通过结合 `gost`（一个代理工具）与 `Shadowsocks`（一个加密代理工具），你能够配置一个无感知的 VPN 解决方案。这可以在脚本运行时透明地为所有需要联网的命令提供代理支持，从而避免由于无法下载依赖或访问外部资源而导致的失败。
+   
+3. **优势：**
+   - **自动化解决网络问题：** 通过 `gost` 和 `Shadowsocks` 配置的 VPN，使得项目安装过程中的网络请求可以绕过限制，而不需要人工干预。
+   - **简化配置过程：** 这种方法可以避免手动下载依赖项或重写库，简化了在受限网络环境下的安装过程。
+
+4. **应用场景：**
+   - **企业内部环境：** 对于需要在公司内网环境中部署项目的情况，无法直接访问外部网络时，这个解决方案特别有效。
+   - **开发与部署：** 在网络受到限制的地区（例如某些国家或公司环境），使用这种配置可以确保安装脚本和程序依赖项能够正确下载。
+
+进一步的实现：
+- **gost 配置：** 你可以将 `gost` 配置为 SOCKS5 代理或 HTTP 代理，使得通过代理的所有网络请求都可以“无感知地”处理，从而避免因网络限制导致的安装失败。
+- **Shadowsocks 配置：** 配合 `gost` 使用 `Shadowsocks` 提供更强的加密和防火墙穿透能力。
+
+这种结合使用的策略，可以有效规避各种因网络问题而导致的安装失败，从而保证项目顺利进行。
+
+### Project Overview:
+This project aims to solve the problem of being unable to execute installation scripts and configure projects (such as `setup.py`) due to network issues.
+
+### Solution Overview:
+1. **Problem Background:**
+   - In some network-restricted areas, it is often impossible to successfully install a project using installation tools like `setup.py` because dependencies need to be downloaded from the internet, which is often restricted.
+   - When executing a `python` installation script, if the shell commands fail due to network issues, the entire installation process will be interrupted.
+
+2. **Invisible Shell VPN Configuration:**
+   - By combining `gost` (a proxy tool) with `Shadowsocks` (an encrypted proxy tool), you can configure an invisible VPN solution. This allows all commands that need network access to be transparently routed through a proxy, preventing failures caused by being unable to download dependencies or access external resources.
+
+3. **Advantages:**
+   - **Automated Network Problem Resolution:** The VPN configured with `gost` and `Shadowsocks` allows network requests during the project installation process to bypass restrictions without requiring manual intervention.
+   - **Simplified Configuration Process:** This approach eliminates the need to manually download dependencies or rewrite libraries, simplifying the installation process in restricted network environments.
+
+4. **Use Cases:**
+   - **Enterprise Internal Environments:** For cases where projects need to be deployed within a company’s internal network but direct access to external networks is not possible, this solution is particularly effective.
+   - **Development and Deployment:** In areas where the network is restricted (such as some countries or corporate environments), using this configuration ensures that installation scripts and program dependencies can be downloaded correctly.
+
+### Further Implementation:
+- **gost Configuration:** You can configure `gost` as a SOCKS5 proxy or an HTTP proxy to ensure that all network requests through the proxy are handled "invisibly," thereby avoiding installation failures caused by network restrictions.
+- **Shadowsocks Configuration:** Using `Shadowsocks` alongside `gost` provides stronger encryption and firewall penetration capabilities.
+
+This combined approach effectively bypasses installation failures caused by network issues, ensuring the smooth execution of the project.
