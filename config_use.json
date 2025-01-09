@@ -1,0 +1,11 @@
+{
+  "server": "sq392-g01.tw01-ae5.entry.v50307shvkaa.art",
+  "server_port": 20005,
+  "local_address": "127.0.0.1",
+  "local_port": 7680,
+  "password": "2d69e232-1e7b-352f-a231-6abedbb4df49",
+  "method": "aes-256-gcm",
+  "timeout": 300,
+  "fast_open": false,
+  "udp": true
+}
