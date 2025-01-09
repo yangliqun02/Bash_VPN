@@ -48,6 +48,117 @@ This combined approach effectively bypasses installation failures caused by netw
 
 
 
----------------------------------------------------------------------------------------------------------------------------------------------------------
-如果你使用的是Linux系统，且确保本地端口7680与8080尚未使用，可以执行项目中的.sh自动完成配置
+-------------------------------------------------------------------------------------------------------------------------
+如果你使用的是Linux系统，且确保本地端口7680与8080尚未使用，可以执行项目中的.sh自动完成配置，以下为相关指令供细致调节。
+首先，将该项目clone至固定path，并进入该地址
+1. shadowsocks 安装
+sudo apt update
+sudo apt install shadowsocks-libev
 
+2. gost安装
+curl socks5://github.com/ginuerzh/gost/releases/download/v2.11.1/gost-linux-amd64-2.11.1.gz
+gzip -d gost-linux-amd64-2.11.1.gz
+chmod +x gost-linux-amd64-2.11.1
+sudo mv gost-linux-amd64-2.11.1 /usr/local/bin/gost
+
+3. 启动shadowsocks
+ss-local -c ./config_use.json &
+（该config对应的server并不稳定，需要稳定连接的用户，请自行搭建shadowsocks server）
+
+4. 启动gost
+gost -L=:8080 -F=socks5://127.0.0.1:7680 &
+
+5. 设置环境变量
+export http_proxy="http://127.0.0.1:8080"
+export https_proxy="http://127.0.0.1:8080"
+
+
+If you are using a Linux system and ensure that local ports 7680 and 8080 are not in use, you can execute the `.sh` script in the project to automatically complete the configuration. Below are the relevant commands for detailed adjustment.
+
+### First, clone the project to a fixed path and navigate to that directory.
+
+1. **Install Shadowsocks:**
+   ```bash
+   sudo apt update
+   sudo apt install shadowsocks-libev
+   ```
+
+2. **Install GOST:**
+   ```bash
+   curl -LO https://github.com/ginuerzh/gost/releases/download/v2.11.1/gost-linux-amd64-2.11.1.gz
+   gzip -d gost-linux-amd64-2.11.1.gz
+   chmod +x gost-linux-amd64-2.11.1
+   sudo mv gost-linux-amd64-2.11.1 /usr/local/bin/gost
+   ```
+
+3. **Start Shadowsocks:**
+   ```bash
+   ss-local -c ./config_use.json &
+   ```
+   *(Note: The server in this config is paid by the author and not stable, so users who need a stable connection should set up their own Shadowsocks server.)*
+
+4. **Start GOST:**
+   ```bash
+   gost -L=:8080 -F=socks5://127.0.0.1:7680 &
+   ```
+
+5. **Set environment variables:**
+   ```bash
+   export http_proxy="http://127.0.0.1:8080"
+   export https_proxy="http://127.0.0.1:8080"
+   ```
+--------------------------------------------------------------------------------------------------------------
+### 原理解析：
+
+**Shadowsocks** 可以使用 **SOCKS5 协议**，完成绝大部分 VPN 任务。然而，像 `wget` 这样的广泛使用的下载工具并不支持 SOCKS5 协议。为了解决这个问题，我们引入了 **GOST**。
+
+### 解决方案的关键步骤：
+
+1. **Shadowsocks 与 SOCKS5**：
+   - Shadowsocks 用来创建一个 SOCKS5 代理，可以处理大多数与 VPN 相关的任务。
+   
+2. **为何引入 GOST**：
+   - 引入 GOST 是为了监听由 Shadowsocks 启动的 SOCKS5 端口（例如 `127.0.0.1:7680`）。
+   - GOST 将 SOCKS5 协议转化为 **HTTP 协议**，从而让像 `wget` 这样的工具能够使用 HTTP 协议进行访问，因为 `wget` 本身并不支持 SOCKS5。
+
+3. **GOST 的作用**：
+   - GOST 启动一个端口（例如 `8080`）来监听 HTTP 协议，将通过 Shadowsocks（使用 SOCKS5 协议）接收到的数据转换成 HTTP 请求。这使得依赖 HTTP(S) 的工具能够顺利访问 web 资源，而不会遇到 SOCKS5 协议的限制问题。
+
+4. **环境变量设置代理**：
+   - 通过将 `http_proxy` 和 `https_proxy` 环境变量设置为 GOST 监听的端口（例如 `8080`），所有的 HTTP/HTTPS 请求都会通过 GOST 转发。
+   - 这样就能有效地将流量通过 Shadowsocks 的 SOCKS5 代理进行传输，同时使系统无法感知到实际的代理路径。
+
+### 最终效果：
+- 完成上述步骤后，当在 shell 层面执行命令时，它们不会感知到具体的代理路径。
+- 这使得原本因直接访问网站被拒绝的命令可以成功执行，从而解决了在执行诸如 repository 访问或安装脚本（如 `setup.py`）过程中的 bug。
+
+### 总结：
+该解决方案通过将 SOCKS5 流量转换为 HTTP 协议，解决了 `wget` 和其他 HTTP/HTTPS 依赖工具不支持 SOCKS5 协议的问题，并通过环境变量将所有 HTTP/HTTPS 流量通过 GOST 的 HTTP 代理转发。这样，即使在受限的环境中，依赖 HTTP/HTTPS 的工具也能够成功执行。
+
+
+### Explanation of the Principle:
+
+**Shadowsocks** can use the **SOCKS5 protocol**, which handles most VPN tasks. However, a widely used downloading tool like `wget` does not support the SOCKS5 protocol natively. To address this limitation, we introduce **GOST**.
+
+### Key Steps in the Solution:
+
+1. **Shadowsocks with SOCKS5**:
+   - Shadowsocks is used to create a SOCKS5 proxy, which can handle most of the VPN-related tasks.
+   
+2. **Why GOST is Introduced**:
+   - GOST is introduced to listen to the SOCKS5 port opened by Shadowsocks (e.g., `127.0.0.1:7680`).
+   - GOST converts this SOCKS5 protocol into the **HTTP protocol** for use with tools like `wget`, which do not natively support SOCKS5.
+
+3. **The Role of GOST**:
+   - GOST starts a port (e.g., `8080`) to listen for the HTTP protocol, converting data received from Shadowsocks (which uses SOCKS5) to HTTP requests. This allows tools that rely on HTTP(S) to access web resources without encountering issues with the SOCKS5 limitation.
+
+4. **Environment Variable Proxy Settings**:
+   - By setting the `http_proxy` and `https_proxy` environment variables to the port GOST is listening on (e.g., `8080`), all HTTP/HTTPS requests made by applications like `wget` will be directed through GOST.
+   - This effectively routes traffic through the Shadowsocks SOCKS5 proxy while making the system unaware of the underlying proxy path.
+
+### Result:
+- After completing these steps, when commands are executed at the shell level, they will not be aware of the actual proxy path.
+- This allows previously blocked commands (due to direct access issues) to execute successfully, thus solving bugs encountered in tasks like repository access and installation scripts (e.g., `setup.py`) that rely on HTTP/HTTPS.
+
+### In summary:
+The solution provides a way to bypass the limitation of `wget` and other tools that do not support SOCKS5 by converting the SOCKS5 traffic to HTTP through GOST, and using environment variables to route all HTTP/HTTPS traffic via GOST’s HTTP proxy. This ensures that tools relying on HTTP/HTTPS can successfully execute even in restricted environments where SOCKS5 would normally be required.
